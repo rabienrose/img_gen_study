@@ -1,6 +1,7 @@
 data
 .DS_Store
 lightning_logs
+*.ckpt
 
 
 # Byte-compiled / optimized / DLL files

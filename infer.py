@@ -21,9 +21,10 @@ with torch.no_grad():
     for i in range(10000):
         x,y = datas[i]
         x=x.unsqueeze(1)
-        z=autoencoder.encoder(x).numpy()
-        num_dict[y][0].append(z[0])
-        num_dict[y][1].append(z[1])
+        z, posteri=autoencoder.encoder(x)
+        z=z.numpy()
+        num_dict[y][0].append(z[0][0])
+        num_dict[y][1].append(z[0][1])
 
 for i in range(10):
     plt.plot(num_dict[i][0], num_dict[i][1],".")

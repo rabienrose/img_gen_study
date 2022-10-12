@@ -34,7 +34,8 @@ class Encoder(nn.Module):
         x=self.conv2(x)
         x=self.conv3(x)
         # conv_out = x.view(x.shape[0], x.shape[1], 1)
-        conv_out = torch.squeeze(x)
+        conv_out = torch.squeeze(x, -1)
+        conv_out = torch.squeeze(conv_out, -1)
         fc_out=self.fc(conv_out)
         z, posteri=sample_z(fc_out)
         return z, posteri
@@ -62,7 +63,7 @@ class Decoder(nn.Module):
 def sample_z(z):
     x_m, x_v = torch.chunk(z, 2, dim=1)
     posteri=RandVar(x_m, x_v)
-    z = posteri.mean + posteri.std * torch.randn(posteri.mean.shape).to(device="mps")
+    z = posteri.mean + posteri.std * torch.randn(posteri.mean.shape).to(posteri.mean)
     # z = posteri.mean
     return z, posteri
 
