@@ -5,7 +5,7 @@ import torchvision
 from PIL import Image
 import numpy as np
 
-data_root="/Users/ziliwang/Documents/code/study_img_gen/data"
+data_root="./data"
 
 def save_grid(images, save_name):
     grid = torchvision.utils.make_grid(images, nrow=4, normalize=True, scale_each=True)
