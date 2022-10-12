@@ -1,5 +1,5 @@
 import torch
-from torch import optim, nn, utils, Tensor
+from torch import optim, nn, tensor, utils, Tensor
 import pytorch_lightning as pl
 from model import LitAutoEncoder
 import torchvision
@@ -20,8 +20,11 @@ for i in range(10):
 with torch.no_grad():
     for i in range(10000):
         x,y = datas[i]
+        y=torch.tensor([y])
         x=x.unsqueeze(1)
-        z, posteri=autoencoder.encoder(x)
+        # print(x.shape)
+        # print(y.shape)
+        z, posteri=autoencoder.encoder(x, y)
         z=z.numpy()
         num_dict[y][0].append(z[0][0])
         num_dict[y][1].append(z[0][1])

@@ -27,15 +27,17 @@ class Encoder(nn.Module):
         self.conv1=nn.Sequential(nn.Conv2d(1, 8, 3, stride=2, padding=1), nn.ReLU())
         self.conv2=nn.Sequential(nn.Conv2d(8, 16, 3, stride=2, padding=1), nn.ReLU())
         self.conv3=nn.Sequential(nn.Conv2d(16, 64, 7, stride=1, padding=0), nn.ReLU())
-        self.fc=nn.Linear(64,4)
+        self.fc=nn.Linear(74,4)
 
-    def forward(self, x):
+    def forward(self, x,y):
+        onehot_y = nn.functional.one_hot(y,10)
         x=self.conv1(x)
         x=self.conv2(x)
         x=self.conv3(x)
         # conv_out = x.view(x.shape[0], x.shape[1], 1)
         conv_out = torch.squeeze(x, -1)
         conv_out = torch.squeeze(conv_out, -1)
+        conv_out = torch.cat((conv_out, onehot_y), 1)
         fc_out=self.fc(conv_out)
         z, posteri=sample_z(fc_out)
         return z, posteri
@@ -44,14 +46,14 @@ class Decoder(nn.Module):
     def __init__(self):
         super().__init__()
         # self.net=nn.Sequential(nn.Linear(10, 32), nn.ReLU(), nn.Linear(32, 128), nn.ReLU(), nn.Linear(128, 28 * 28))
-        self.fc_t=nn.Sequential(nn.Linear(2,64), nn.ReLU())
+        self.fc_t=nn.Sequential(nn.Linear(12,64), nn.ReLU())
         self.conv1_t=nn.Sequential(nn.ConvTranspose2d(64, 16, 7, stride=1, padding=0), nn.ReLU())
         self.conv2_t=nn.Sequential(nn.ConvTranspose2d(16, 8, 3, stride=2, padding=1, output_padding=1), nn.ReLU())
         self.conv3_t=nn.ConvTranspose2d(8, 1, 3, stride=2, padding=1, output_padding=1)
 
-    def forward(self, x):
-        # onehot =  nn.functional.one_hot(y, 10)
-        # h=self.net(onehot.float())
+    def forward(self, x, y):
+        onehot_y = nn.functional.one_hot(y,10)
+        x = torch.cat((x, onehot_y), 1)
         x=self.fc_t(x)
         x=torch.unsqueeze(x, dim=-1)
         x=torch.unsqueeze(x, dim=-1)
@@ -76,8 +78,8 @@ class LitAutoEncoder(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         x, y = batch
-        z, posteri = self.encoder(x)
-        x_hat = self.decoder(z)
+        z, posteri = self.encoder(x,y)
+        x_hat = self.decoder(z,y)
         loss = self.make_loss(x_hat, x, posteri)
         return loss
 
@@ -86,8 +88,8 @@ class LitAutoEncoder(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         x, y = batch
-        z, posteri = self.encoder(x)
-        x_hat = self.decoder(z)
+        z, posteri = self.encoder(x,y)
+        x_hat = self.decoder(z,y)
         if batch_idx==0:
             if self.val_count%1==0:
                 out_filename=util.data_root+ "/out_imgs/re_"+str(self.val_count)+".png"
@@ -108,5 +110,5 @@ class LitAutoEncoder(pl.LightningModule):
         return rec_loss+kl_loss*0.001
 
     def configure_optimizers(self):
-        optimizer = optim.Adam(self.parameters(), lr=1e-4)
+        optimizer = optim.Adam(self.parameters(), lr=1e-3)
         return optimizer
