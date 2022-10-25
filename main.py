@@ -7,6 +7,7 @@ from model import LitAutoEncoder
 import torchvision.transforms as transforms
 import util
 
+
 autoencoder = LitAutoEncoder()
 transform = transforms.ToTensor()
 train_set = MNIST(root=util.data_root, download=True, train=True, transform=transform)
